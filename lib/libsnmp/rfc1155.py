@@ -673,7 +673,10 @@ class ObjectID(Asn1Object):
         # Do the bit with the first 2 subids
         # section 22.4 of X.209
         idlist.reverse()
-        subid1 = (idlist.pop() * 40) + idlist.pop()
+        try:
+          subid1 = (idlist.pop() * 40) + idlist.pop()
+        except IndexError:
+          return result
         idlist.reverse()
         idlist.insert(0, subid1)
         

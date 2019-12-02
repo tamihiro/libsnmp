@@ -60,7 +60,7 @@ class SNMP(v1.SNMP):
         """ Creates a message object from a pdu and a
             community string.
         """
-        pdu = self.createGetNextRequest( varbindlist )
+        pdu = self.createGetNextRequestPDU( varbindlist )
         return rfc1905.Message( community=community, data=pdu )
 
     def createTrapMessage(self, pdu, community='public'):
