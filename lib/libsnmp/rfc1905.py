@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -7,10 +9,10 @@
 # SNMPv2 protocol parts
 
 import logging
-import debug
+from . import debug
 
-import rfc1157
-from rfc1902 import *
+from . import rfc1157
+from .rfc1902 import *
 
 log = logging.getLogger('rfc1905')
 
@@ -19,7 +21,7 @@ asnTagNumbers['Inform'] = 0x06
 asnTagNumbers['TrapV2'] = 0x07
 asnTagNumbers['Report'] = 0x08
 
-max_bindings = 2147483647L
+max_bindings = 2147483647
 
 class VarBind(rfc1157.VarBind):
     """ VarBind redefined here to place it in the same namespace

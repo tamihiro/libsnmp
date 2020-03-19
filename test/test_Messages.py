@@ -21,6 +21,7 @@
 #
 # Unit tests for Messages
 
+from __future__ import unicode_literals
 import unittest
 import logging
 

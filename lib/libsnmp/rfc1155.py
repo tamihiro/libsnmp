@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -13,11 +16,20 @@
 # I've included here all the basic SNMPv1 types, since they are used
 # by SNMPv2 and v3.
 
-import util
-import debug
+from builtins import oct
+from builtins import hex
+from builtins import map
+from builtins import str
+from builtins import chr
+from builtins import range
+from past.utils import old_div
+from builtins import object
+from . import util
+from . import debug
 import logging
 import types
 import copy
+from functools import reduce
 
 log = logging.getLogger('Asn1Object')
 
@@ -61,7 +73,7 @@ asnTagNumbers = {
 }
 
 
-class Asn1Object:
+class Asn1Object(object):
 
     """Base class for all Asn1Objects This is only intended to
     support a specific subset of ASN1 stuff as defined by the RFCs to
@@ -139,7 +151,7 @@ class Asn1Object:
             
             run = length & 0x7F
             length = 0
-            for i in xrange(run):
+            for i in range(run):
                 length = (length << 8) | ord(stream[n])
                 n += 1
                 pass
@@ -158,7 +170,7 @@ class Asn1Object:
         of that known object.  Attempts to decode() an unknown object
         type result in an error.  """
 
-        if type(stream) != types.StringType:
+        if type(stream) != bytes:
             raise TypeError('stream should be of type StringType, not %s' % type(stream) )
         
         objects = []
@@ -290,10 +302,10 @@ class Integer(Asn1Object):
     asnTagClass = asnTagClasses['UNIVERSAL']
     asnTagNumber = asnTagNumbers['Integer']
     
-    MINVAL = -2147483648L
-    MAXVAL =  2147483647L
+    MINVAL = -2147483648
+    MAXVAL =  2147483647
     
-    def __init__(self, value=0L):
+    def __init__(self, value=0):
         Asn1Object.__init__(self)
         if not self.MINVAL <= value <= self.MAXVAL:
             if __debug__: log.debug('minval: %d' % self.MINVAL)
@@ -329,7 +341,7 @@ class Integer(Asn1Object):
     # Define some handy arithmetic operations
     def __eq__(self, other):
         try:
-            if self.value == long(other):
+            if self.value == int(other):
                 return True
 
         except:
@@ -405,17 +417,17 @@ class Integer(Asn1Object):
         ## This method wins because it's consistently the fastest
         ##
         
-        input = map(ord, stream)
+        input = list(map(ord, stream))
         
         if __debug__: log.debug('Decoding %s' % util.octetsToHex(stream) )
         
-        self.value = 0L
+        self.value = 0
         byte = input[0]
         if (byte & 0x80) == 0x80:
-            negbit = 0x80L
+            negbit = 0x80
             self.value = byte & 0x7f
             
-            for i in xrange(1, len(input)):
+            for i in range(1, len(input)):
                 negbit <<= 8
                 self.value = (self.value << 8) | input[i]
                 pass
@@ -423,8 +435,8 @@ class Integer(Asn1Object):
             self.value = self.value - negbit
             
         else:
-            self.value = long(byte)
-            for i in xrange(1,len(input)):
+            self.value = int(byte)
+            for i in range(1,len(input)):
                 self.value = (self.value << 8) | input[i]
                 pass
             pass
@@ -440,12 +452,12 @@ class Integer(Asn1Object):
         ##
         ## Original pysnmp algorithm
         ##
-        bytes = map(ord, stream)
+        bytes = list(map(ord, stream))
         if bytes[0] & 0x80:
-            bytes.insert(0, -1L)
+            bytes.insert(0, -1)
             pass
         
-        result = reduce(lambda x,y: x<<8 | y, bytes, 0L)
+        result = reduce(lambda x,y: x<<8 | y, bytes, 0)
         
         return result
     
@@ -457,7 +469,7 @@ class Integer(Asn1Object):
         val = 0
         byte = ord(stream[0])
         if (byte & 0x80) == 0x80:
-            negbit = 0x80L
+            negbit = 0x80
             val = byte & 0x7f
 
             for i in range(len(stream)-1):
@@ -483,11 +495,11 @@ class Integer(Asn1Object):
         Coded from scratch by jpw """
         
         val = 0
-        bytes = map(ord, stream)
+        bytes = list(map(ord, stream))
 
         if bytes[0] & 0x80:
             bytes[0] = bytes[0] & 0x7f      # invert bit 8
-            negbit = 0x80L
+            negbit = 0x80
             for i in bytes:
                 negbit <<= 8
                 val = (val << 8) | i
@@ -564,7 +576,7 @@ class ObjectID(Asn1Object):
         
         Asn1Object.__init__(self)
         
-        if type(value) == types.StringType:
+        if type(value) == bytes:
             
             value = value.strip('.')
             subidlist = value.split('.')
@@ -578,13 +590,13 @@ class ObjectID(Asn1Object):
                 pass
             pass
         
-        elif type(value) == types.ListType or type(value) == types.NoneType:
+        elif type(value) == list or type(value) == type(None):
             self.value = copy.copy(value)
             
-        elif type(value) == types.TupleType:
+        elif type(value) == tuple:
             self.value = list(value)
             
-        elif type(value) == types.IntType:
+        elif type(value) == int:
             self.value = [value]
 
         elif isinstance(value, ObjectID):
@@ -632,7 +644,7 @@ class ObjectID(Asn1Object):
         return ObjectID(self.value)
     
     def append(self, subid):
-        if type(subid) == types.IntType:
+        if type(subid) == int:
             self.value.append(subid)
         else:
             raise TypeError
@@ -705,7 +717,7 @@ class ObjectID(Asn1Object):
         
         self.value = []
         
-        bytes = map(ord, stream)
+        bytes = list(map(ord, stream))
         
         if len(stream) == 0:
             raise ValueError('stream of zero length in %s' % self.__class__.__name__)
@@ -715,7 +727,7 @@ class ObjectID(Asn1Object):
         ##
 
         if bytes[0] < 128:
-            self.value.append( int(bytes[0] / 40) )
+            self.value.append( int(old_div(bytes[0], 40)) )
             self.value.append( int(bytes[0] % 40) )
 
         else:
@@ -898,7 +910,7 @@ class IPAddress(OctetString):
     def __init__(self, value=None):
         OctetString.__init__(self, value)
         
-        if type(value) == types.StringType:
+        if type(value) == bytes:
             self.value = ''
             listform = value.split('.')
             
@@ -909,7 +921,7 @@ class IPAddress(OctetString):
                 self.value += chr(int(item))
                 pass
             pass
-        elif type(value) == types.ListType:
+        elif type(value) == list:
             if len(value) != 4:
                 raise ValueError('IPAddress must be of length 4')
             pass
@@ -958,8 +970,8 @@ class Counter(Integer):
     asnTagFormat = asnTagFormats['PRIMITIVE']
     asnTagNumber = asnTagNumbers['Counter']
     
-    MINVAL = 0L
-    MAXVAL = 4294967295L
+    MINVAL = 0
+    MAXVAL = 4294967295
     
     def __add__(self, val):
         
@@ -986,7 +998,7 @@ class Counter(Integer):
         ## value over to the positive world.
         
         if self.value < 0:
-            self.value += 0x100000000L
+            self.value += 0x100000000
             pass
         return self
     
@@ -1003,7 +1015,7 @@ class Guage(Integer):
     asnTagNumber = asnTagNumbers['Guage']
     
     MINVAL = 0
-    MAXVAL = 4294967295L
+    MAXVAL = 4294967295
     
     def __add__(self, val):
         
@@ -1040,7 +1052,7 @@ class TimeTicks(Integer):
     asnTagNumber = asnTagNumbers['TimeTicks']
     
     MINVAL = 0
-    MAXVAL = 4294967295L
+    MAXVAL = 4294967295
     
     epoch = None
     

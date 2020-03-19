@@ -21,6 +21,9 @@
 
 # Unit tests for the encoder/decoder
 
+from __future__ import unicode_literals
+from builtins import zip
+from builtins import str
 import unittest
 import logging
 import string
@@ -118,7 +121,7 @@ class EncoderTest(unittest.TestCase):
     def test_integerEncode(self):
         """ Test encoding of Integer type
         """
-        for item in test_integers.keys():
+        for item in list(test_integers.keys()):
             myobj = rfc1155.Integer(item)
 #            self.log.debug('Encoding int: %s' % myobj() )
             octets = myobj.encodeContents()
@@ -129,7 +132,7 @@ class EncoderTest(unittest.TestCase):
     def test_integerEncodeDecode(self):
         """ Test encode/decode of Integer type
         """
-        for item in test_integers.keys():
+        for item in list(test_integers.keys()):
             myobj = rfc1155.Integer(item)
 #            self.log.debug('Encoding int: %s' % myobj() )
             octets = myobj.encodeContents()
@@ -162,7 +165,7 @@ class EncoderTest(unittest.TestCase):
         
         """Test encode of ObjectID type"""
         
-        for input, output in test_objectids.items():
+        for input, output in list(test_objectids.items()):
             myobj = rfc1155.ObjectID(input)
             octets = myobj.encodeContents()
             self.assertEquals(octets, output)
@@ -173,7 +176,7 @@ class EncoderTest(unittest.TestCase):
         
         """Test encode/decode of ObjectID type"""
         
-        for input, output in test_objectids.items():
+        for input, output in list(test_objectids.items()):
             myobj = rfc1155.ObjectID(input)
             octets = myobj.encodeContents()
             object = myobj.decodeContents(octets)
@@ -207,7 +210,7 @@ class EncoderTest(unittest.TestCase):
     def test_sequenceEncode(self):
         """ Test encode of Sequence type
         """
-        for item in test_sequences.keys():
+        for item in list(test_sequences.keys()):
             myobj = rfc1155.Sequence(test_sequences[item])
             octets = myobj.encodeContents()
             #self.log.debug('Got value [length %s]: %s, oct: %s' % ( len(octets), util.octetsToHex(octets), util.octetsToOct(octets)) )
@@ -216,7 +219,7 @@ class EncoderTest(unittest.TestCase):
     def test_sequenceEncodeDecode(self):
         """ Test encode/decode of Sequence type
         """
-        for item in test_sequences.keys():
+        for item in list(test_sequences.keys()):
             myobj = rfc1155.Sequence(test_sequences[item])
             octets = myobj.encodeContents()
             object = myobj.decodeContents(octets)
@@ -227,14 +230,14 @@ class EncoderTest(unittest.TestCase):
     def test_sequenceofEncode(self):
         """ Test encode of SequenceOf type
         """
-        for item in test_sequenceOf.keys():
+        for item in list(test_sequenceOf.keys()):
             myobj = rfc1155.SequenceOf(test_sequenceOf[item][0], test_sequenceOf[item][1])
 #            self.log.debug('SequenceOf: %s' % myobj)
 
     def test_sequenceofEncodeDecode(self):
         """ Test encode/decode of SequenceOf type
         """
-        for item in test_sequenceOf.keys():
+        for item in list(test_sequenceOf.keys()):
             myobj = rfc1155.SequenceOf(test_sequenceOf[item][0], test_sequenceOf[item][1])
 #            self.log.debug('SequenceOf: %s' % myobj)
             octets = myobj.encodeContents()
@@ -251,7 +254,7 @@ class EncoderTest(unittest.TestCase):
     def test_ipAddressEncode(self):
         """ Test encode of IPAddress type
         """
-        for item in test_ipaddresses.keys():
+        for item in list(test_ipaddresses.keys()):
             myobj = rfc1155.IPAddress(test_ipaddresses[item])
 #            self.log.debug('IPAddress: %s' % myobj)
 
@@ -260,7 +263,7 @@ class EncoderTest(unittest.TestCase):
         """ Test decoding of multiple object types
         """
         decoder = rfc1155.Asn1Object()
-        for item in test_octets.keys():
+        for item in list(test_octets.keys()):
 #            self.log.debug('decoding octets: %s [%s]' % ( item, util.octetsToHex(item) ))
             objectList = decoder.decode( item )
 

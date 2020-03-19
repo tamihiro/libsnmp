@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -6,6 +7,7 @@
 #
 # Customised logging stuff
 
+from builtins import str
 import logging
 import os
 

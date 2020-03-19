@@ -21,6 +21,7 @@
 #
 # Unit tests for rfc1157
 
+from __future__ import unicode_literals
 import unittest
 import logging
 

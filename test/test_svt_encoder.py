@@ -21,6 +21,9 @@
 #
 # Stress/volume tests for encoding/decoding
 
+from __future__ import print_function
+from __future__ import unicode_literals
+from builtins import range
 import logging
 import string
 import time
@@ -105,12 +108,12 @@ if __name__ == '__main__':
     #    print "Profiling encoding of %d random ObjectIDs..." % NUMBER_OF_OBJECTS
     #    profile.run('encodeRandomObjectIDs()')
     
-    print "Profiling encoding/decoding of %d random ObjectIDs..." % NUMBER_OF_OBJECTS
+    print("Profiling encoding/decoding of %d random ObjectIDs..." % NUMBER_OF_OBJECTS)
     profile.run('go()')
     
     #encodeDecodeRandomObjectIDs()  
     
     end = time.time()
     diff = end - start
-    print 'time to run %4.2f seconds' % diff
+    print('time to run %4.2f seconds' % diff)
     logging.shutdown()

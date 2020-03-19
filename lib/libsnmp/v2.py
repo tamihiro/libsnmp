@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -145,11 +146,12 @@ class SNMP(v1.SNMP):
             community string.
         """
 
-    def receiveData(self, manager, cb_ctx, (data, src), (exc_type, exc_value, exc_traceback) ):
+    def receiveData(self, manager, cb_ctx, xxx_todo_changeme, xxx_todo_changeme1 ):
         """ This method should be called when data is received
             from a remote host.
         """
-        # Exception handling
+        (data, src) = xxx_todo_changeme
+        (exc_type, exc_value, exc_traceback) = xxx_todo_changeme1
         if exc_type is not None:
             raise exc_type(exc_value)
 
@@ -189,7 +191,7 @@ class SNMP(v1.SNMP):
                 log.debug('Unknown message type')
 
         # log any errors in callback
-        except Exception, e:
+        except Exception as e:
 #            log.error('Exception in callback: %s: %s' % (self.callbacks[int(msg.data.requestID)].__name__, e) )
             log.error('Exception in receiveData: %s' % e )
             traceback.print_exc()

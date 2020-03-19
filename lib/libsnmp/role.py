@@ -1,9 +1,11 @@
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
 #    libsnmp - a Python SNMP library
 #    Copyright (c) 2003 Justin Warren <daedalus@eigenmagic.com>
 
+from builtins import object
 import socket
 import logging
 import time
@@ -14,7 +16,7 @@ from libsnmp import rfc1157
 
 log = logging.getLogger('v1.SNMP')
 
-class manager:
+class manager(object):
     
     def __init__(self, dest, interface=('0.0.0.0', 0), socksize=0x10000):
         

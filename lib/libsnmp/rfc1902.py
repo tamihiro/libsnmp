@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -6,12 +8,12 @@
 #
 # SNMPv2 stuff from RFC 1902
 
-import util
-import debug
+from . import util
+from . import debug
 import logging
 import types
 
-from rfc1155 import *
+from .rfc1155 import *
 
 log = logging.getLogger('rfc1902')
 
@@ -31,8 +33,8 @@ asnTagNumbers['Counter64'] = 0x06
 class Integer32(Integer):
     """ A 32 bit integer
     """
-    MINVAL = -2147483648L
-    MAXVAL = 2147483648L
+    MINVAL = -2147483648
+    MAXVAL = 2147483648
 
 class Counter32(Counter):
     """ A 32 bit counter
@@ -47,8 +49,8 @@ class Guage32(Guage):
 class Counter64(Counter):
     """ A 64 bit counter
     """
-    MINVAL = 0L
-    MAXVAL = 18446744073709551615L
+    MINVAL = 0
+    MAXVAL = 18446744073709551615
 
     asnTagClass = asnTagNumbers['Counter64']
 

@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -5,10 +7,10 @@
 #    Copyright (c) 2003 Justin Warren <daedalus@eigenmagic.com>
 
 import logging
-import debug
+from . import debug
 log = logging.getLogger('rfc1157')
 
-from rfc1155 import *
+from .rfc1155 import *
 
 asnTagNumbers['Get'] = 0x00
 asnTagNumbers['GetNext'] = 0x01

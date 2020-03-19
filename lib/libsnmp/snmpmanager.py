@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -8,10 +9,12 @@
 ## An snmpmanager understands SNMPv1 and SNMPv2c messages
 ## and so it can encode and decode both.
 
+from future import standard_library
+standard_library.install_aliases()
 import socket
 import select
 import logging
-import Queue
+import queue
 import time
 import os
 import asyncore
@@ -43,7 +46,7 @@ typeValDict = {
 
 class snmpManager(asynrole.manager):
 
-    nextRequestID = 0L      # global counter of requestIDs
+    nextRequestID = 0      # global counter of requestIDs
 
     def __init__(self, queueEmpty=None, trapCallback=None, interface=('0.0.0.0', 0), timeout=0.25):
         """ Create a new snmpManager bound to interface
@@ -51,7 +54,7 @@ class snmpManager(asynrole.manager):
             of stuff to do. Default is to wait for more stuff.
         """
         self.queueEmpty = queueEmpty
-        self.outbound = Queue.Queue()
+        self.outbound = queue.Queue()
         self.callbacks = {}
 
         # What to do if we get a trap
@@ -259,12 +262,12 @@ class snmpManager(asynrole.manager):
         self.outbound.put( (msg, remote) )
 
 
-    def receiveData(self, manager, cb_ctx, (data, src), (exc_type, exc_value, exc_traceback) ):
+    def receiveData(self, manager, cb_ctx, xxx_todo_changeme, xxx_todo_changeme1 ):
         """ This method should be called when data is received
             from a remote host.
         """
-
-        # Exception handling
+        (data, src) = xxx_todo_changeme
+        (exc_type, exc_value, exc_traceback) = xxx_todo_changeme1
         if exc_type is not None:
             raise exc_type(exc_value)
 
@@ -341,7 +344,7 @@ class snmpManager(asynrole.manager):
                 request = self.outbound.get(0)
                 self.send( request[0].encode(), request[1] )
 
-            except Queue.Empty:
+            except queue.Empty:
                 if self.queueEmpty:
                     self.queueEmpty(self)
                 pass

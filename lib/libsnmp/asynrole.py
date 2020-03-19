@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -14,8 +15,9 @@ from libsnmp import role
 
 class manager(asyncore.dispatcher):
     
-    def __init__(self, (cb_fun, cb_ctx), dst=(None, 0), interface=('0.0.0.0', 0), timeout=0.25):
+    def __init__(self, xxx_todo_changeme, dst=(None, 0), interface=('0.0.0.0', 0), timeout=0.25):
         
+        (cb_fun, cb_ctx) = xxx_todo_changeme
         if not callable(cb_fun):
             raise ValueError('Non-callable callback function')
         
@@ -54,7 +56,7 @@ class manager(asyncore.dispatcher):
         if exc_type is None or exc_value is None or exc_traceback is None:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             pass
-        if type(exc_type) == types.ClassType and issubclass(exc_type, ValueError):
+        if type(exc_type) == type and issubclass(exc_type, ValueError):
             self.cb_fun(self, self.cb_ctx, (None, None), (exc_type, exc_value, exc_traceback))
         else:
             raise

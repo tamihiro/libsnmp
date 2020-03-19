@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -6,6 +7,7 @@
 # 
 # Some utility functions to help make life easier
 
+from builtins import oct
 def octetsToHex(octets):
     """ convert a string of octets to a string of hex digits
     """

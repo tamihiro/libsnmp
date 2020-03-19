@@ -21,6 +21,8 @@
 #
 # Unit tests for the encoder/decoder
 
+from __future__ import unicode_literals
+from builtins import str
 import unittest
 import logging
 import string

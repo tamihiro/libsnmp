@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 # $Id$
 # $Revision$
 #
@@ -6,10 +7,12 @@
 #
 # SNMPv1 related functions
 
+from future import standard_library
+standard_library.install_aliases()
 import socket
 import select
 import logging
-import Queue
+import queue
 import time
 import os
 import asyncore
@@ -24,7 +27,7 @@ log.setLevel(logging.INFO)
 
 class SNMP(asynrole.manager):
 
-    nextRequestID = 0L      # global counter of requestIDs
+    nextRequestID = 0      # global counter of requestIDs
 
     def __init__(self, interface=('0.0.0.0', 0), queueEmpty=None, trapCallback=None, timeout=0.25):
         """ Create a new SNMPv1 object bound to localaddr
@@ -34,7 +37,7 @@ class SNMP(asynrole.manager):
             of stuff to do. Default is to wait for more stuff.
         """
         self.queueEmpty = queueEmpty
-        self.outbound = Queue.Queue()
+        self.outbound = queue.Queue()
         self.callbacks = {}
 
         # What to do if we get a trap
@@ -167,11 +170,12 @@ class SNMP(asynrole.manager):
             community string.
         """
 
-    def receiveData(self, manager, cb_ctx, (data, src), (exc_type, exc_value, exc_traceback) ):
+    def receiveData(self, manager, cb_ctx, xxx_todo_changeme, xxx_todo_changeme1 ):
         """ This method should be called when data is received
             from a remote host.
         """
-        # Exception handling
+        (data, src) = xxx_todo_changeme
+        (exc_type, exc_value, exc_traceback) = xxx_todo_changeme1
         if exc_type is not None:
             raise exc_type(exc_value)
 
@@ -208,7 +212,7 @@ class SNMP(asynrole.manager):
                 if __debug__: log.debug('Unknown message type')
 
         # log any errors in callback
-        except Exception, e:
+        except Exception as e:
 #            log.error('Exception in callback: %s: %s' % (self.callbacks[int(msg.data.requestID)].__name__, e) )
             log.error('Exception in receiveData: %s' % e )
             raise
@@ -229,7 +233,7 @@ class SNMP(asynrole.manager):
                 request = self.outbound.get(0)
                 self.send( request[0].encode(), request[1] )
 
-            except Queue.Empty:
+            except queue.Empty:
                 if self.queueEmpty is not None:
                     self.queueEmpty(self)
                 pass
