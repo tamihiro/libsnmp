@@ -1,3 +1,12 @@
+## Little note about my fork
+Been a long time user of the original [jpwarren/libsnmp](https://github.com/jpwarren/libsnmp) with much appreciation because PySNMP was, and still is as of this writing, way too slow to be used in my app. 
+
+Now I need to make my app run with Python 3, I've forked his repo and made minimum necessary changes to files in `test/` and `lib/libsnmp/` directories so the module works with both Python 2.7 and 3.x.
+
+The changes result in the relevant part of my app being about 1.18 times slower than before, while still much faster (about 17.6 times) than with PySNMP. 
+
+(original README follows)
+
 # libsnmp
 A pure Python SNMP library
 
