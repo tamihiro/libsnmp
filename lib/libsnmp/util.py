@@ -8,6 +8,23 @@ from __future__ import unicode_literals
 # Some utility functions to help make life easier
 
 from builtins import oct
+from builtins import bytes
+import sys
+
+def _b(obj):
+    if sys.version_info[0] < 3:
+        return bytes(obj, 'latin1')
+    else:
+        return obj
+
+def join_b(list_of_bytes):
+
+    """ join list of newbytes (<3) or bytes and return newbytes or bytes object """
+    if sys.version_info[0] < 3:
+        return bytes(b''.join(list_of_bytes), 'latin1')
+    else:
+        return b''.join(list_of_bytes)
+
 def octetsToHex(octets):
     """ convert a string of octets to a string of hex digits
     """
@@ -15,7 +32,7 @@ def octetsToHex(octets):
     while octets:
         byte = octets[0]
         octets = octets[1:]
-        result += "%.2x" % ord(byte)
+        result += "%.2x" % byte
 
     return result
 
@@ -26,7 +43,6 @@ def octetsToOct(octets):
     while octets:
         byte = octets[0]
         octets = octets[1:]
-        result += "%.4s," % oct(ord(byte))
-
+        result += "%.4s," % oct(byte)
     return result
 

@@ -16,10 +16,12 @@ from __future__ import unicode_literals
 # I've included here all the basic SNMPv1 types, since they are used
 # by SNMPv2 and v3.
 
+from future.types import newbytes, newstr
 from builtins import oct
 from builtins import hex
 from builtins import map
 from builtins import str
+from builtins import bytes
 from builtins import chr
 from builtins import range
 from past.utils import old_div
@@ -27,8 +29,8 @@ from builtins import object
 from . import util
 from . import debug
 import logging
-import types
 import copy
+import sys
 from functools import reduce
 
 log = logging.getLogger('Asn1Object')
@@ -72,7 +74,6 @@ asnTagNumbers = {
     'Opaque':           0x04,
 }
 
-
 class Asn1Object(object):
 
     """Base class for all Asn1Objects This is only intended to
@@ -102,10 +103,8 @@ class Asn1Object(object):
         resultlist.append(self.encodeIdentifier())
         resultlist.append(self.encodeLength(len(contents)))
         resultlist.append(contents)
-        
-        result = ''.join(resultlist)
-        
-        return result
+
+        return util.join_b(resultlist)
     
     ##
     ##
@@ -114,7 +113,7 @@ class Asn1Object(object):
         """Decode a BER tag field, returning the tag and the remainder
         of the stream"""
 
-        tag = ord(stream[0])
+        tag = stream[0]
         n = 1
         if tag & 0x1F == 0x1F:
             
@@ -125,7 +124,7 @@ class Asn1Object(object):
             
             tag = 0
             while 1:
-                byte = ord(stream[n])
+                byte = stream[n]
                 tag = (tag << 7) | (byte & 0x7F)
                 n += 1
                 if not byte & 0x80: break
@@ -141,7 +140,7 @@ class Asn1Object(object):
         """Decode a BER length field, returing the length and the
         remainder of the stream"""
         
-        length = ord(stream[0])
+        length = stream[0]
         n = 1
         if length & 0x80:
             
@@ -152,7 +151,7 @@ class Asn1Object(object):
             run = length & 0x7F
             length = 0
             for i in range(run):
-                length = (length << 8) | ord(stream[n])
+                length = (length << 8) | stream[n]
                 n += 1
                 pass
             pass
@@ -170,8 +169,8 @@ class Asn1Object(object):
         of that known object.  Attempts to decode() an unknown object
         type result in an error.  """
 
-        if type(stream) != bytes:
-            raise TypeError('stream should be of type StringType, not %s' % type(stream) )
+        if type(stream) not in (bytes, newbytes):
+            raise TypeError('stream should be of type bytes, not %s' % type(stream) )
         
         objects = []
         while len(stream) > 0:
@@ -205,7 +204,7 @@ class Asn1Object(object):
         this object.  Section 6.3 of ITU-T-X.209 """
         
         if self.asnTagNumber < 0x1F:
-            result = chr(self.asnTagClass | self.asnTagFormat | self.asnTagNumber)
+            result = bytes(chr(self.asnTagClass | self.asnTagFormat | self.asnTagNumber), 'latin1')
             
         else:
             
@@ -216,15 +215,15 @@ class Asn1Object(object):
             
             # encode the first octet
             resultlist = []
-            resultlist.append(chr(self.asnTagClass | self.asnTagFormat | 0x1F))
+            resultlist.append(bytes(chr(self.asnTagClass | self.asnTagFormat | 0x1F), 'latin1'))
             
             # encode each subsequent octet
             integer = self.asnTagNumber
             while integer != -1:
-                resultlist.append(chr(integer & 0xFF))
+                resultlist.append(bytes(chr(integer & 0xFF), 'latin1'))
                 integer = integer >> 8
                 pass
-            result = ''.join(resultlist)
+            result = util.join_b(resultlist)
             pass
         
         return result
@@ -236,7 +235,7 @@ class Asn1Object(object):
         ITU-T-X.209 """
         
         if length < 127:
-            result = chr( length & 0xff )
+            result = bytes(chr( length & 0xff ), 'latin1')
             pass
         
         else:
@@ -252,7 +251,7 @@ class Asn1Object(object):
             resultlist = []
             numOctets = 0
             while length > 0:
-                resultlist.insert(0, chr(length & 0xff))
+                resultlist.insert(0, bytes(chr(length & 0xff), 'latin1'))
                 length = length >> 8
                 numOctets += 1
                 pass
@@ -260,9 +259,9 @@ class Asn1Object(object):
             # Add a 1 to the front of the octet
             if __debug__: log.debug('long length encoding of: %d octets' % numOctets)
             numOctets = numOctets | 0x80
-            resultlist.insert(0, chr(numOctets & 0xff))
+            resultlist.insert(0, bytes(chr(numOctets & 0xff), 'latin1'))
             
-            result = ''.join(resultlist)
+            result = util.join_b(resultlist)
             pass
         
         return result
@@ -376,10 +375,10 @@ class Integer(Asn1Object):
         integer = self.value
         
         if integer == 0:
-            return '\000'
+            return util._b(b'\000')
             
         elif integer == -1:
-            return '\377'
+            return util._b(b'\377')
         
         elif integer > 0:
             result = []
@@ -392,7 +391,7 @@ class Integer(Asn1Object):
                 result.insert(0, 0)
                 pass
             
-            return ''.join(map(chr, result))
+            return util.join_b([ bytes(chr(i), 'latin1') for i in result ])
         
         else:
             result = []
@@ -405,7 +404,7 @@ class Integer(Asn1Object):
                 result.insert(0, 0)
                 pass
             
-            return ''.join(map(chr, result))
+            return util.join_b([ bytes(chr(i), 'latin1') for i in result ])
         
         pass
     
@@ -417,27 +416,23 @@ class Integer(Asn1Object):
         ## This method wins because it's consistently the fastest
         ##
         
-        input = list(map(ord, stream))
-        
-        if __debug__: log.debug('Decoding %s' % util.octetsToHex(stream) )
-        
         self.value = 0
-        byte = input[0]
+        byte = stream[0]
         if (byte & 0x80) == 0x80:
             negbit = 0x80
             self.value = byte & 0x7f
             
-            for i in range(1, len(input)):
+            for i in range(1, len(stream)):
                 negbit <<= 8
-                self.value = (self.value << 8) | input[i]
+                self.value = (self.value << 8) | stream[i]
                 pass
             
             self.value = self.value - negbit
             
         else:
             self.value = int(byte)
-            for i in range(1,len(input)):
-                self.value = (self.value << 8) | input[i]
+            for i in range(1,len(stream)):
+                self.value = (self.value << 8) | stream[i]
                 pass
             pass
         
@@ -452,12 +447,11 @@ class Integer(Asn1Object):
         ##
         ## Original pysnmp algorithm
         ##
-        bytes = list(map(ord, stream))
-        if bytes[0] & 0x80:
-            bytes.insert(0, -1)
+        if stream[0] & 0x80:
+            stream.insert(0, -1)
             pass
         
-        result = reduce(lambda x,y: x<<8 | y, bytes, 0)
+        result = reduce(lambda x,y: x<<8 | y, stream, 0)
         
         return result
     
@@ -467,13 +461,13 @@ class Integer(Asn1Object):
         Coded from scratch by jpw """
         
         val = 0
-        byte = ord(stream[0])
+        byte = stream[0]
         if (byte & 0x80) == 0x80:
             negbit = 0x80
             val = byte & 0x7f
 
             for i in range(len(stream)-1):
-                byte = ord(stream[i+1])
+                byte = stream[i+1]
                 negbit <<= 8
                 val = (val << 8) | byte
                 pass
@@ -483,7 +477,7 @@ class Integer(Asn1Object):
         else:
             val = byte
             for i in range(len(stream)-1):
-                byte = ord(stream[i+1])
+                byte = stream[i+1]
                 val = (val<<8) | byte
                 pass
             pass
@@ -495,19 +489,18 @@ class Integer(Asn1Object):
         Coded from scratch by jpw """
         
         val = 0
-        bytes = list(map(ord, stream))
 
-        if bytes[0] & 0x80:
-            bytes[0] = bytes[0] & 0x7f      # invert bit 8
+        if stream[0] & 0x80:
+            stream[0] = stream[0] & 0x7f      # invert bit 8
             negbit = 0x80
-            for i in bytes:
+            for i in stream:
                 negbit <<= 8
                 val = (val << 8) | i
                 pass
             val = val - (negbit >> 8)
             
         else:
-            for i in bytes:
+            for i in stream:
                 val = (val << 8) | i
                 pass
             pass
@@ -537,15 +530,23 @@ class OctetString(Asn1Object):
     
     def encodeContents(self):
         
-        """An OctetString is already encoded. Whee!"""
+        """An OctetString also needs to be encoded. """
         
-        return self.value
+        resultlist = []
+        for v in self.value:
+            # v is int only if self.__class__ is IPAddress otherwise string of length 1  
+            if type(v) == int:
+                resultlist.append(bytes([v]))
+            else:
+                resultlist.append(bytes(v, 'latin1'))
+        return util.join_b(resultlist)
+
     
     def decodeContents(self, stream):
         
-        """An OctetString is already decoded. Whee!  """
+        """An OctetString is decoded here.  """
         
-        self.value = stream
+        self.value = stream.decode('latin1')
         return self
     
     def __hex__(self):
@@ -576,7 +577,11 @@ class ObjectID(Asn1Object):
         
         Asn1Object.__init__(self)
         
-        if type(value) == bytes:
+        # with python2 value is type unicode due to imported unicode_literals
+        if sys.version_info[0] < 3 and type(value) is unicode:
+            value = str(value)
+
+        if type(value) in (str, newstr):
             
             value = value.strip('.')
             subidlist = value.split('.')
@@ -603,7 +608,7 @@ class ObjectID(Asn1Object):
             self.value = value.value[:]
             
         else:
-            raise TypeError('unknown type passed as OID')
+            raise TypeError('unknown type passed as OID: {}: {}'.format(value, type(value)))
         
         return
     
@@ -694,20 +699,20 @@ class ObjectID(Asn1Object):
         
         for subid in idlist:
             if subid < 128:
-                result.append(chr(subid & 0x7f))
+                result.append(bytes(chr(subid & 0x7f), 'latin1'))
             else:
                 position = len(result)
-                result.append(chr(subid & 0x7f))
+                result.append(bytes(chr(subid & 0x7f), 'latin1'))
                 
                 subid = subid >> 7
                 while subid > 0:
-                    result.insert(position, chr(0x80 | (subid & 0x7f)))
+                    result.insert(position, bytes(chr(0x80 | (subid & 0x7f)), 'latin1'))
                     subid = subid >> 7
                     pass
                 pass
             pass
         
-        return ''.join(result)
+        return util.join_b(result)
     
     ##
     ##
@@ -717,8 +722,6 @@ class ObjectID(Asn1Object):
         
         self.value = []
         
-        bytes = list(map(ord, stream))
-        
         if len(stream) == 0:
             raise ValueError('stream of zero length in %s' % self.__class__.__name__)
         
@@ -726,9 +729,9 @@ class ObjectID(Asn1Object):
         ## Do the funky decode of the first octet
         ##
 
-        if bytes[0] < 128:
-            self.value.append( int(old_div(bytes[0], 40)) )
-            self.value.append( int(bytes[0] % 40) )
+        if stream[0] < 128:
+            self.value.append( int(old_div(stream[0], 40)) )
+            self.value.append( int(stream[0] % 40) )
 
         else:
             
@@ -748,8 +751,8 @@ class ObjectID(Asn1Object):
         
         n = 1
         
-        while n < len(bytes):
-            subid = bytes[n]
+        while n < len(stream):
+            subid = stream[n]
             n += 1
             ##
             ## If bit 8 is not set, this is the last octet of this subid
@@ -759,7 +762,7 @@ class ObjectID(Asn1Object):
             if subid & 0x80 == 0x80:
                 val = subid & 0x7f
                 while (subid & 0x80) == 0x80:
-                    subid = bytes[n]
+                    subid = stream[n]
                     n += 1
                     val = (val << 7) | (subid & 0x7f)
                     pass
@@ -788,7 +791,7 @@ class Null(Asn1Object):
         return '<Null>'
     
     def encodeContents(self):
-        return ''
+        return util._b(b'')
     
     def decodeContents(self, stream):
         if len(stream) != 0:
@@ -847,12 +850,10 @@ class Sequence(Asn1Object):
         if __debug__: log.debug('Encoding sequence contents...')
         resultlist = []
         for elem in self.value:
-            resultlist.append(elem.encode())
+            resultlist.append((type(elem) in (bytes, newbytes) and [elem] or [elem.encode()])[0])
             pass
         
-        result = ''.join(resultlist)
-        
-        return result
+        return util.join_b(resultlist)
     
     def decodeContents(self, stream):
         
@@ -910,23 +911,20 @@ class IPAddress(OctetString):
     def __init__(self, value=None):
         OctetString.__init__(self, value)
         
-        if type(value) == bytes:
+        if value:
             self.value = ''
-            listform = value.split('.')
+            resultlist = []
+            listform = str(value).split('.')
             
             if len(listform) != 4:
                 raise ValueError('IPAddress must be of length 4')
             
             for item in listform:
-                self.value += chr(int(item))
+                resultlist.append(bytes(chr(int(item)), 'latin1'))
                 pass
-            pass
-        elif type(value) == list:
-            if len(value) != 4:
-                raise ValueError('IPAddress must be of length 4')
-            pass
+            self.value = util.join_b(resultlist)
         else:
-            self.value = ''
+            self.value = util._b('')
             pass
         return
     
@@ -938,16 +936,12 @@ class IPAddress(OctetString):
         return self
     
     def __str__(self):
-        result = []
-        for item in self.value:
-            result.append( '%d' % ord(item) )
-            pass
-        return '.'.join(result)
+        return '.'.join( [str(x) for x in self.value] )
     
     ##
     ##
     def toObjectID(self):
-        return ObjectID( [ ord(x) for x in self.value ] )
+        return ObjectID( [ str(x) for x in self.value ] )
     
     pass
 

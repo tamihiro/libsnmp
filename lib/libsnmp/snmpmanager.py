@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 ## and so it can encode and decode both.
 
 from future import standard_library
+from builtins import bytes
 standard_library.install_aliases()
 import socket
 import select
@@ -18,6 +19,7 @@ import queue
 import time
 import os
 import asyncore
+import sys
 
 from libsnmp import debug
 from libsnmp import asynrole
@@ -266,7 +268,8 @@ class snmpManager(asynrole.manager):
         """ This method should be called when data is received
             from a remote host.
         """
-        (data, src) = xxx_todo_changeme
+        (rawdata, src) = xxx_todo_changeme
+        data = sys.version_info[0]<3 and bytes(rawdata, 'latin1') or rawdata
         (exc_type, exc_value, exc_traceback) = xxx_todo_changeme1
         if exc_type is not None:
             raise exc_type(exc_value)

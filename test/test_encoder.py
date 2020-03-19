@@ -23,6 +23,7 @@
 
 from __future__ import unicode_literals
 from builtins import zip
+from builtins import bytes
 from builtins import str
 import unittest
 import logging
@@ -37,17 +38,17 @@ from libsnmp import rfc1155
 
 # Some integer encodings to check
 test_integers = {
-    0:          '\000',
-    5:          '\005',
-    15:         '\017',
-    73:         '\111',
-    128:        '\000\200',
-    -127:        '\201',
-    -128:        '\200',
-    124787:     '\001\347\163',
-    -1:         '\377',
-    -267:       '\376\365',
-    -5848548:   '\246\302\034'
+    0:          b'\000',
+    5:          b'\005',
+    15:         b'\017',
+    73:         b'\111',
+    128:        b'\000\200',
+    -127:        b'\201',
+    -128:        b'\200',
+    124787:     b'\001\347\163',
+    -1:         b'\377',
+    -267:       b'\376\365',
+    -5848548:   b'\246\302\034'
 }
 
 # octetstrings are simple, since they stay as they are
@@ -60,19 +61,19 @@ test_octetstrings = [
 ]
 
 test_objectids = {
-    '.1.2.4.5.6':                    '\052\004\005\006',
-    '1.2.4.5.6':                     '\052\004\005\006',    
-    '.2.3.3':                        '\123\003',
-    '.0.2.8.5':                      '\002\010\005',
-    '0.2.8.5':                       '\002\010\005',    
-    '.1.2.65.7.3394.23.5.115.46':    '\052\101\007\232\102\027\005\163\056'
+    '.1.2.4.5.6':                    b'\052\004\005\006',
+    '1.2.4.5.6':                     b'\052\004\005\006',    
+    '.2.3.3':                        b'\123\003',
+    '.0.2.8.5':                      b'\002\010\005',
+    '0.2.8.5':                       b'\002\010\005',    
+    '.1.2.65.7.3394.23.5.115.46':    b'\052\101\007\232\102\027\005\163\056'
 }
 
 test_sequences = {
-    '\002\001\016':         [ rfc1155.Integer(14), ],
-    '\002\002\006\321':         [ rfc1155.Integer(1745), ],
-    '\002\001\077\005\000':         [ rfc1155.Integer(63), rfc1155.Null() ], 
-    '\006\006\051\006\005\054\003\005\004\004\142\154\141\150\002\003\001\202\037':         [ rfc1155.ObjectID('.1.1.6.5.44.3.5'), rfc1155.OctetString('blah'), rfc1155.Integer(98847) ]
+    b'\002\001\016':         [ rfc1155.Integer(14), ],
+    b'\002\002\006\321':         [ rfc1155.Integer(1745), ],
+    b'\002\001\077\005\000':         [ rfc1155.Integer(63), rfc1155.Null() ], 
+    b'\006\006\051\006\005\054\003\005\004\004\142\154\141\150\002\003\001\202\037':         [ rfc1155.ObjectID('.1.1.6.5.44.3.5'), rfc1155.OctetString('blah'), rfc1155.Integer(98847) ]
 
 }
 
@@ -90,22 +91,22 @@ test_ipaddresses = {
 
 test_octets = {
     # A fully encoded integer
-    '\002\001\005':         [5, ],
+    b'\002\001\005':         [5, ],
     # Another fully encoded integer
-    '\002\003\001\347\163': [124787, ],
+    b'\002\003\001\347\163': [124787, ],
     # three integers
-    '\002\003\246\302\034\002\003\001\347\163\002\001\337': [-5848548, 124787, -1],
+    b'\002\003\246\302\034\002\003\001\347\163\002\001\337': [-5848548, 124787, -1],
 
     # a simple octet string
-    '\004\036the small frog sat in the well':   ['the small frog sat in the well'],
+    b'\004\036the small frog sat in the well':   ['the small frog sat in the well'],
 
     # some object IDs
-    '\006\002\123\003':                 [ [2, 3, 3], ],
-    '\006\004\052\004\005\006':         [ [1, 2, 4, 5, 6], ],
-    '\006\011\052\101\007\232\102\027\005\163\056':     [ [1, 2, 65, 7, 3394, 23, 5, 115, 46], ],
+    b'\006\002\123\003':                 [ [2, 3, 3], ],
+    b'\006\004\052\004\005\006':         [ [1, 2, 4, 5, 6], ],
+    b'\006\011\052\101\007\232\102\027\005\163\056':     [ [1, 2, 65, 7, 3394, 23, 5, 115, 46], ],
 
     # A Null
-    '\005\000':         [ None, ],
+    b'\005\000':         [ None, ],
 
 }
 
@@ -150,7 +151,7 @@ class EncoderTest(unittest.TestCase):
 #            self.log.debug('as hex: %s' % hex(myobj) )
 #            self.log.debug('as octal: %s' % oct(myobj) )
             octets = myobj.encodeContents()
-            self.assertEquals(item, octets)
+            self.assertEquals(bytes(item, 'latin1'), octets)
 
     def test_octetStringEncodeDecode(self):
         """ Test encode/decode of OctetString type
@@ -195,7 +196,7 @@ class EncoderTest(unittest.TestCase):
         
         myobj = rfc1155.Null()
         octets = myobj.encodeContents()
-        self.assertEquals(octets, '')
+        self.assertEquals(octets, b'')
         return
     
     def test_nullEncodeDecode(self):
@@ -263,7 +264,7 @@ class EncoderTest(unittest.TestCase):
         """ Test decoding of multiple object types
         """
         decoder = rfc1155.Asn1Object()
-        for item in list(test_octets.keys()):
+        for item in [ util._b(item) for item in list(test_octets.keys()) ]:
 #            self.log.debug('decoding octets: %s [%s]' % ( item, util.octetsToHex(item) ))
             objectList = decoder.decode( item )
 

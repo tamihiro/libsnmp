@@ -54,12 +54,12 @@ class MessagesTest(unittest.TestCase):
         message = rfc1157.Message( data=object.encode() )
 
         octets = message.encode()
-        self.log.debug('octets: %s' % util.octetsToHex(octets) )
+        self.log.debug('octets: %s %s' % (util.octetsToHex(octets), type(octets)) )
 
         # now decode it
         msg = rfc1157.Message().decode(octets)
 
-        self.log.debug('decoded message: %s' % msg)
+        self.log.debug('decoded message: %s %s' % (msg, type(msg)))
 
 if __name__ == '__main__':
     unittest.main()
